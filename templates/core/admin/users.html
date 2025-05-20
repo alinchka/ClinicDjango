@@ -1,0 +1,88 @@
+{% extends 'core/base.html' %}
+{% load static %}
+
+{% block title %}Управление пользователями{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2 class="mb-4">Управление пользователями</h2>
+    
+    <div class="mb-3">
+        <a href="{% url 'admin_add_user' %}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Добавить пользователя
+        </a>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Логин</th>
+                            <th>ФИО</th>
+                            <th>Email</th>
+                            <th>Роль</th>
+                            <th>Статус</th>
+                            <th>Действия</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>
+                                {{ user.last_name }} {{ user.first_name }}
+                                {% if user.profile.patronymic %}
+                                    {{ user.profile.patronymic }}
+                                {% endif %}
+                            </td>
+                            <td>{{ user.email }}</td>
+                            <td>
+                                {% if user.is_superuser %}
+                                    Суперпользователь
+                                {% else %}
+                                    {{ user.role.get_role_display }}
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if user.is_active %}
+                                    <span class="badge bg-success">Активен</span>
+                                {% else %}
+                                    <span class="badge bg-danger">Неактивен</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                {% if not user.is_superuser %}
+                                    <div class="btn-group" role="group">
+                                        <a href="{% url 'admin_edit_user' user.id %}" class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-edit"></i> Изменить
+                                        </a>
+                                        <form method="post" action="{% url 'admin_toggle_user_role' user.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-info">
+                                                {% if user.role.role == 'admin' %}
+                                                    <i class="fas fa-user"></i> Снять админа
+                                                {% else %}
+                                                    <i class="fas fa-user-shield"></i> Сделать админом
+                                                {% endif %}
+                                            </button>
+                                        </form>
+                                        <form method="post" action="{% url 'admin_delete_user' user.id %}" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" onclick="return confirm('Вы уверены, что хотите удалить этого пользователя?')">
+                                                <i class="fas fa-trash"></i> Удалить
+                                            </button>
+                                        </form>
+                                    </div>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

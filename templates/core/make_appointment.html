@@ -1,0 +1,171 @@
+{% extends 'core/base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}Запись на прием - Клиника{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title text-center mb-4">Запись на прием к врачу</h2>
+                <div class="alert alert-info">
+                    <p class="mb-0">Доступное время для записи:</p>
+                    <ul class="mb-0">
+                        <li>По рабочим дням (пн-пт)</li>
+                        <li>С 9:00 до 18:00</li>
+                        <li>Интервал записи - 15 минут (9:00, 9:15, 9:30, 9:45 и т.д.)</li>
+                    </ul>
+                </div>
+                <form method="post" id="appointmentForm">
+                    {% csrf_token %}
+                    {{ form|crispy }}
+                    <div class="d-grid gap-2">
+                        <button type="submit" class="btn btn-primary">Записаться на прием</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const doctorSelect = document.querySelector('#id_doctor');
+    const dateTimeInput = document.querySelector('#id_appointment_time');
+    const form = document.querySelector('#appointmentForm');
+
+    function formatTimeForDisplay(date) {
+        return date.getHours().toString().padStart(2, '0') + ':' + 
+               date.getMinutes().toString().padStart(2, '0');
+    }
+
+    function formatDateTimeForInput(date) {
+        return date.getFullYear() + '-' +
+               String(date.getMonth() + 1).padStart(2, '0') + '-' +
+               String(date.getDate()).padStart(2, '0') + 'T' +
+               String(date.getHours()).padStart(2, '0') + ':' +
+               String(date.getMinutes()).padStart(2, '0');
+    }
+
+    // Функция для округления времени до следующих 15 минут
+    function roundToNext15Minutes(date) {
+        const newDate = new Date(date);
+        const minutes = newDate.getMinutes();
+        const remainder = minutes % 15;
+        
+        // Если время уже кратно 15 минутам, оставляем как есть
+        if (remainder === 0) {
+            return newDate;
+        }
+
+        // Округляем до следующих 15 минут
+        newDate.setMinutes(minutes + (15 - remainder));
+        newDate.setSeconds(0);
+        newDate.setMilliseconds(0);
+
+        return newDate;
+    }
+
+    // Устанавливаем минимальную дату (текущее время)
+    let now = new Date();
+    
+    // Если сейчас после 18:00 или до 9:00, устанавливаем на следующий рабочий день 9:00
+    if (now.getHours() >= 18 || now.getHours() < 9) {
+        now.setDate(now.getDate() + (now.getHours() >= 18 ? 1 : 0));
+        now.setHours(9, 0, 0, 0);
+    } else {
+        // Округляем текущее время до следующих 15 минут
+        now = roundToNext15Minutes(now);
+    }
+
+    // Устанавливаем минимальную и максимальную даты
+    dateTimeInput.min = formatDateTimeForInput(now);
+    
+    const maxDate = new Date();
+    maxDate.setMonth(maxDate.getMonth() + 1);
+    maxDate.setHours(17, 45, 0, 0);
+    dateTimeInput.max = formatDateTimeForInput(maxDate);
+
+    // При изменении значения в поле даты и времени
+    dateTimeInput.addEventListener('input', function() {
+        if (!this.value) return;
+
+        let selectedDate = new Date(this.value);
+        const hours = selectedDate.getHours();
+        const minutes = selectedDate.getMinutes();
+
+        console.log('Выбранное время:', formatTimeForDisplay(selectedDate));
+        
+        // Проверяем рабочие часы
+        if (hours < 9 || hours >= 18) {
+            alert('Пожалуйста, выберите время с 9:00 до 18:00');
+            this.value = '';
+            return;
+        }
+
+        // Если время не кратно 15 минутам, округляем
+        if (minutes % 15 !== 0) {
+            const originalTime = formatTimeForDisplay(selectedDate);
+            selectedDate = roundToNext15Minutes(selectedDate);
+            
+            // Если после округления вышли за 18:00, устанавливаем на 17:45
+            if (selectedDate.getHours() >= 18) {
+                selectedDate.setHours(17, 45, 0, 0);
+            }
+
+            console.log('Время после округления:', formatTimeForDisplay(selectedDate));
+            const newValue = formatDateTimeForInput(selectedDate);
+            console.log('Новое значение для поля:', newValue);
+            this.value = newValue;
+            alert(`Время автоматически округлено с ${originalTime} до ${formatTimeForDisplay(selectedDate)}`);
+        }
+    });
+
+    // Проверяем выбранную дату перед отправкой формы
+    form.addEventListener('submit', function(e) {
+        if (!dateTimeInput.value) {
+            e.preventDefault();
+            alert('Пожалуйста, выберите дату и время');
+            return;
+        }
+
+        const selectedDate = new Date(dateTimeInput.value);
+        const dayOfWeek = selectedDate.getDay();
+        const hours = selectedDate.getHours();
+        const minutes = selectedDate.getMinutes();
+
+        // Проверяем выходные
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+            e.preventDefault();
+            alert('Пожалуйста, выберите рабочий день (пн-пт)');
+            dateTimeInput.value = '';
+            return;
+        }
+
+        // Проверяем рабочие часы
+        if (hours < 9 || hours >= 18 || (hours === 17 && minutes > 45)) {
+            e.preventDefault();
+            alert('Пожалуйста, выберите время с 9:00 до 17:45');
+            return;
+        }
+
+        // Проверяем кратность 15 минутам
+        if (minutes % 15 !== 0) {
+            e.preventDefault();
+            const roundedDate = roundToNext15Minutes(selectedDate);
+            if (roundedDate.getHours() < 18) {
+                const newValue = formatDateTimeForInput(roundedDate);
+                console.log('Округленное значение перед отправкой:', newValue);
+                dateTimeInput.value = newValue;
+                alert(`Время округлено до ${formatTimeForDisplay(roundedDate)}`);
+            } else {
+                alert('Пожалуйста, выберите время до 17:45');
+            }
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %} 

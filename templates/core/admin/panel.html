@@ -1,0 +1,86 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Панель администратора - Клиника{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 mb-4">
+        <h2>Панель администратора</h2>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Управление врачами</h5>
+                <p class="card-text">Добавление, редактирование и удаление врачей клиники.</p>
+                <a href="{% url 'admin_doctors' %}" class="btn btn-primary">Управлять врачами</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Управление записями</h5>
+                <p class="card-text">Просмотр и управление всеми записями на прием.</p>
+                <a href="{% url 'admin_appointments' %}" class="btn btn-primary">Управлять записями</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title">Управление пользователями</h5>
+                <p class="card-text">Управление учетными записями пользователей.</p>
+                <a href="{% url 'admin_users' %}" class="btn btn-primary">Управлять пользователями</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Статистика записей</h5>
+                <div class="list-group">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        Записей на сегодня
+                        <span class="badge bg-primary rounded-pill">{{ today_appointments_count }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        Записей на завтра
+                        <span class="badge bg-primary rounded-pill">{{ tomorrow_appointments_count }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        Всего активных записей
+                        <span class="badge bg-primary rounded-pill">{{ total_active_appointments }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Статистика пользователей</h5>
+                <div class="list-group">
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        Всего пользователей
+                        <span class="badge bg-primary rounded-pill">{{ total_users }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        Всего врачей
+                        <span class="badge bg-primary rounded-pill">{{ total_doctors }}</span>
+                    </div>
+                    <div class="list-group-item d-flex justify-content-between align-items-center">
+                        Новых пользователей за неделю
+                        <span class="badge bg-primary rounded-pill">{{ new_users_week }}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %} 

@@ -1,0 +1,54 @@
+{% extends 'core/base.html' %}
+
+{% block title %}Главная - Клиника{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12 text-center mb-4">
+        <h1>Добро пожаловать в нашу клинику</h1>
+        <p class="lead">Мы предоставляем качественные медицинские услуги</p>
+    </div>
+</div>
+
+<div class="row">
+    {% if user.is_authenticated %}
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Записаться на прием</h5>
+                    <p class="card-text">Выберите удобное время для посещения врача.</p>
+                    <a href="{% url 'make_appointment' %}" class="btn btn-primary">Записаться</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Мои записи</h5>
+                    <p class="card-text">Просмотр и управление вашими записями на прием.</p>
+                    <a href="{% url 'my_appointments' %}" class="btn btn-primary">Посмотреть</a>
+                </div>
+            </div>
+        </div>
+    {% else %}
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Войти в систему</h5>
+                    <p class="card-text">Уже есть аккаунт? Войдите для доступа к записи на прием.</p>
+                    <a href="{% url 'login' %}" class="btn btn-primary">Войти</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-body">
+                    <h5 class="card-title">Регистрация</h5>
+                    <p class="card-text">Впервые у нас? Зарегистрируйтесь для доступа к услугам.</p>
+                    <a href="{% url 'register' %}" class="btn btn-primary">Регистрация</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %} 
